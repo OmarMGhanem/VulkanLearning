@@ -20,6 +20,11 @@ BasicPipeline::~BasicPipeline() {
   vkDestroyPipeline(basicDevice.device(), graphicsPipeline, nullptr);
 }
 
+void BasicPipeline::bind(VkCommandBuffer commandBuffer) {
+  vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    graphicsPipeline);
+}
+
 std::vector<char> BasicPipeline::readFile(const std::string &fileName) {
 
   std::ifstream file(fileName, std::ios::ate | std::ios::binary);
@@ -75,16 +80,24 @@ void BasicPipeline::createBasicPipeline(const std::string &vertFilePath,
   vertexInputInfo.pVertexBindingDescriptions = nullptr;
   vertexInputInfo.pVertexAttributeDescriptions = nullptr;
 
+  VkPipelineViewportStateCreateInfo viewportInfo{};
+  viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  viewportInfo.viewportCount = 1;
+  viewportInfo.pViewports = &configInfo.viewport;
+  viewportInfo.scissorCount = 1;
+  viewportInfo.pScissors = &configInfo.scissor;
+
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipelineInfo.stageCount = 2;
   pipelineInfo.pStages = shaderStages;
   pipelineInfo.pVertexInputState = &vertexInputInfo;
   pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-  pipelineInfo.pViewportState = &configInfo.viewportInfo;
+  pipelineInfo.pViewportState = &viewportInfo;
   pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
   pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
   pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
+  pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
   pipelineInfo.pDynamicState = nullptr;
 
   pipelineInfo.layout = configInfo.pipelineLayout;
@@ -129,13 +142,6 @@ PipelineConfigInfo BasicPipeline::defaultPipelineConfigInfo(uint32_t width,
   configInfo.viewport.height = static_cast<float>(height);
   configInfo.viewport.minDepth = 0.0f;
   configInfo.viewport.maxDepth = 1.0f;
-
-  configInfo.viewportInfo.sType =
-      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  configInfo.viewportInfo.viewportCount = 1;
-  configInfo.viewportInfo.pViewports = &configInfo.viewport;
-  configInfo.viewportInfo.scissorCount = 1;
-  configInfo.viewportInfo.pScissors = &configInfo.scissor;
 
   configInfo.rasterizationInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
