@@ -13,6 +13,7 @@ public:
   BasicWindow(const BasicWindow &) = delete;
   BasicWindow &operator=(const BasicWindow &) = delete;
   bool shouldClose() { return glfwWindowShouldClose(window); }
+  void createWindowSurface(VkInstance instance, VkSurfaceKHR *surface);
 
 private:
   GLFWwindow *window;
